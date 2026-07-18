@@ -1,28 +1,161 @@
 # TRAM: Benchmarking Temporal Reasoning for Large Language Models
-This repository contains datasets, data processing code, model descriptions, and a datasheet for the benchmark used for 'TRAM: Benchmarking Temporal Reasoning in Large Language Models'.
 
-## Datasets
-TRAM encompasses ten temporal reasoning tasks, presented as multiple-choice questions (MCQs) across a range of time-related domains. For clarity, we ensure that each question has only one correct answer. TRAM incorporates existing natural language understanding datasets, human-crafted templates and questions, web sources, and program generation. Answers have been derived through a combination of expert annotations and programmatic generation. The benchmark includes **526,668** problems in total. For each dataset, we introduce a few-shot development set, with 5 questions per category, and a separate test set for evaluation. 
-All datasets used for experiments can be downloaded in [./datasets](./datasets/)" folder. Overview of ten tasks included in the benchmark:
+TRAM is a benchmark for evaluating temporal reasoning in large language models. It covers ten complementary task families that test whether models can reason about event order, duration, frequency, temporal arithmetic, temporal relations, causality, ambiguity, typical times, storytelling, and temporal natural language inference.
+
+The benchmark was introduced in [TRAM: Benchmarking Temporal Reasoning for Large Language Models](https://aclanthology.org/2024.findings-acl.382/) (Findings of ACL 2024). It contains **526,668** problems built from existing NLU datasets, human-written templates and questions, web sources, and programmatic generation. Each task includes a test set and a small few-shot development set.
+
+## Repository Contents
+
+```text
+.
+├── datasets/                         # Released TRAM datasets as zip archives
+├── data_processing/                  # Notebooks used to construct task datasets
+├── image_sources/                    # Figures used in the repository
+├── datasheet_for_TRAM_benchmark.pdf  # Dataset datasheet
+├── data_sources.txt                  # External source datasets
+├── LICENSE
+└── README.md
+```
+
+## Dataset Overview
+
+All released datasets are available in [`datasets/`](datasets/). Most tasks are provided as multiple-choice questions (MCQ), and several tasks also include short-answer question (SAQ) versions.
 
 <div align="center">
-    <img width="95%" alt="image" src="https://github.com/EternityYW/TRAM-Benchmark/blob/main/image_sources/dataset_set.png">
+  <img width="95%" alt="Overview of the TRAM temporal reasoning task families" src="image_sources/dataset_set.png">
 </div>
 
-<sub>[1] [Zhou et al., 2019](https://aclanthology.org/D19-1332/), [2] [Rajpurkar et al., 2016](https://aclanthology.org/D16-1264/), [3] [Uzzaman et al., 2013](https://aclanthology.org/S13-2001/), [4] [Williams et al., 2018](https://aclanthology.org/N18-1101/), [5] [Bowman et al., 2015](https://aclanthology.org/D15-1075/), [6] [Roemmele et al., 2011](https://aaai.org/papers/02418-choice-of-plausible-alternatives-an-evaluation-of-commonsense-causal-reasoning/), [7] [Mostafazadeh et al., 2016](https://aclanthology.org/N16-1098/), [8] [Mostafazadeh et al., 2017](https://aclanthology.org/W17-0906/)</sub>
+| Task archive | Test files | Few-shot files | Main format | Test instances |
+|---|---:|---:|---|---:|
+| `ambiguity_resolution.zip` | 1 | 1 | MCQ | 3,624 |
+| `arithmetic.zip` | 2 | 2 | MCQ, SAQ | 15,584 |
+| `causality.zip` | 2 | 1 | MCQ | 590 original, 600 mirrored |
+| `duration.zip` | 2 | 2 | MCQ, SAQ | 7,197 |
+| `frequency.zip` | 2 | 2 | MCQ, SAQ | 4,628 |
+| `nli_mcq.zip` | 1 | 1 | MCQ | 282,134 |
+| `nli_saq.zip` | 1 | 1 | SAQ | 282,134 |
+| `ordering.zip` | 2 | 2 | MCQ, SAQ | 29,452 |
+| `relation.zip` | 2 | 2 | MCQ, SAQ | 102,457 |
+| `storytelling.zip` | 1 | 1 | MCQ | 67,251 |
+| `typical_time.zip` | 2 | 2 | MCQ, SAQ | 13,010 |
 
-**Note:** The “Data Size" column aggregates totals from both the development and test sets. “K-Way MC" signifies a multiple-choice response format with K options. *Amb. Res.* denotes Ambiguity Resolution. *NLI* stands for natural language inference. “Same" indicates the text source is the same as the row above.
+The MCQ files use answer labels such as `A`, `B`, `C`, or `D`. SAQ files use the natural-language answer directly.
 
-For more details, please refer to the paper.
+## File Format
 
-## Models
-We evaluate the performance of several well-known language models on the TRAM benchmark, which is organized into two main categories.
-In the first category, we consider four popular large language models (LLMs): the open-source model [Llama-2-13b-chat](https://arxiv.org/pdf/2307.09288.pdf), and the closed-source models [PaLM-bison-chat](https://arxiv.org/pdf/2305.10403.pdf), GPT-3.5-turbo, and [GPT-4](https://arxiv.org/pdf/2303.08774.pdf).
-We evaluate each model using two prompting strategies: standard prompting (SP) and chain-of-thought (CoT) prompting. Under both strategies, the models undergo tests in zero-shot and 5-shot settings.
-For all models, we apply greedy decoding (i.e., temperature = 0) for response generation. Each of these models is accessed using its corresponding API key.
+Each archive contains CSV files with the following naming pattern:
 
-In the second category, we consider minimal supervision as opposed to traditional fully supervised learning in order to establish baseline evaluations. Specifically, we employ four representative BERT-style models, including [BERT-base](https://aclanthology.org/N19-1423/), [BERT-large](https://aclanthology.org/N19-1423/), [RoBERTa-base](https://arxiv.org/abs/1907.11692), and [RoBERTa-large](https://arxiv.org/abs/1907.11692).
-For the temporal NLI task, we employ the Sequence Classification variant of BERT and RoBERTa from Huggingface (i.e., [BertForSequenceClassification](https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/bert#transformers.BertForSequenceClassification) and [RobertaForSequenceClassification](https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/roberta#transformers.RobertaForSequenceClassification)), given its suitability for the task's structure. However, for the other tasks, we utilize the Multiple Choice variant of BERT and RoBERTa from Huggingface (i.e., [BertForMultipleChoice](https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/bert#transformers.BertForMultipleChoice), [RobertaForMultipleChoice](https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/roberta#transformers.RobertaForMultipleChoice)).
+| Pattern | Meaning |
+|---|---|
+| `*_mcq.csv` | Test split for multiple-choice evaluation |
+| `*_shots_mcq.csv` | Few-shot development examples for MCQ prompting |
+| `*_saq.csv` | Test split for short-answer evaluation, where available |
+| `*_shots_saq.csv` | Few-shot development examples for SAQ prompting, where available |
 
+Typical MCQ columns:
 
+```text
+Question, Option A, Option B, Option C, [Option D], Answer, Category/Source
+```
 
+Some tasks include additional context columns, such as `Premise`, `Hypothesis`, or `Story`.
+
+Typical SAQ columns:
+
+```text
+Question, Answer, Category/Source
+```
+
+For `causality.zip`, `causality_mirrored_mcq.csv` contains mirrored examples corresponding to the original causality instances.
+
+## Quick Start
+
+Clone the repository:
+
+```bash
+git clone https://github.com/EmanuelaBoros/TRAM-Benchmark.git
+cd TRAM-Benchmark
+```
+
+Unzip one dataset:
+
+```bash
+mkdir -p data/typical_time
+unzip datasets/typical_time.zip -d data/typical_time
+```
+
+Load a split with Python:
+
+```python
+import pandas as pd
+
+df = pd.read_csv("data/typical_time/typical_time_mcq.csv")
+print(df.head())
+print(df.columns)
+```
+
+Simple MCQ evaluation:
+
+```python
+def accuracy(predictions, gold):
+    return sum(p == g for p, g in zip(predictions, gold)) / len(gold)
+
+gold = df["Answer"].tolist()
+# predictions should contain labels such as "A", "B", "C", or "D"
+```
+
+## Evaluation
+
+Most TRAM tasks are evaluated with **accuracy**, since they are formulated as questions with one correct answer. For tasks with fixed class labels and imbalanced distributions, especially **temporal relation** and **temporal NLI**, the paper reports both **accuracy** and **F1**.
+
+The original experiments evaluate:
+
+- LLMs such as GPT-4, GPT-3.5-turbo, PaLM-bison-chat, and Llama-2-13b-chat.
+- Zero-shot and 5-shot prompting.
+- Standard prompting and chain-of-thought prompting.
+- BERT-style baselines using sequence classification or multiple-choice classification heads.
+
+## Source Datasets
+
+TRAM builds on several existing datasets:
+
+- [MCTACO](https://github.com/CogComp/MCTACO)
+- [COPA](https://people.ict.usc.edu/~gordon/copa.html)
+- [SQuAD](https://huggingface.co/datasets/squad)
+- [TempEval-3](https://figshare.com/articles/dataset/TempEval-3_data/9586532)
+- [MNLI](https://huggingface.co/datasets/multi_nli)
+- [SNLI](https://huggingface.co/datasets/snli)
+- [ROCStories / Story Cloze Test](https://cs.rochester.edu/nlp/rocstories/)
+
+See [`data_sources.txt`](data_sources.txt) and the paper appendix for more detail on data construction.
+
+## Datasheet
+
+A dataset datasheet is provided at [`datasheet_for_TRAM_benchmark.pdf`](datasheet_for_TRAM_benchmark.pdf).
+
+## Citation
+
+If you use TRAM, please cite:
+
+```bibtex
+@inproceedings{wang-zhao-2024-tram,
+    title = "{TRAM}: Benchmarking Temporal Reasoning for Large Language Models",
+    author = "Wang, Yuqing  and
+      Zhao, Yun",
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL 2024",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.findings-acl.382/",
+    doi = "10.18653/v1/2024.findings-acl.382",
+    pages = "6389--6415"
+}
+```
+
+## License
+
+This repository is released under the MIT License. See [`LICENSE`](LICENSE) for details.
